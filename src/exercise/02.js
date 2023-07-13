@@ -5,21 +5,23 @@
 import * as React from 'react'
 
 function useLocalStorageWithState(key, defaultValue = '') {
-  const [state, setState] = React.useState(
-    () => window.localStorage.getItem(key) || defaultValue,
-  )
+  const [state, setState] = React.useState(() => {
+    const valueInLocalStorage = window.localStorage.getItem(key)
+    console.log(valueInLocalStorage)
+    if (valueInLocalStorage) {
+      return JSON.parse(valueInLocalStorage)
+    }
+    return defaultValue
+  })
 
   React.useEffect(() => {
-    window.localStorage.setItem(key, state)
+    window.localStorage.setItem(key, JSON.stringify(state))
   }, [key, state])
   return [state, setState]
 }
 
 function Greeting({initialName = ''}) {
-  const [name, setName] = useLocalStorageWithState(
-    'name',
-    JSON.stringify(initialName),
-  )
+  const [name, setName] = useLocalStorageWithState('name', initialName)
   function handleChange(event) {
     setName(event.target.value)
   }
@@ -35,7 +37,7 @@ function Greeting({initialName = ''}) {
 }
 
 function App() {
-  return <Greeting initialName="Mekuanint" />
+  return <Greeting key={'name'} initialName="Mekuanint" />
 }
 
 export default App
