@@ -1,27 +1,17 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 // useEffect: persistent state
 // http://localhost:3000/isolated/exercise/02.js
 
 import * as React from 'react'
 
-function useLocalStorageWithState(key, defaultValue = '') {
-  const [state, setState] = React.useState(() => {
-    const valueInLocalStorage = window.localStorage.getItem(key)
-    console.log(valueInLocalStorage)
-    if (valueInLocalStorage) {
-      return JSON.parse(valueInLocalStorage)
-    }
-    return defaultValue
-  })
-
-  React.useEffect(() => {
-    window.localStorage.setItem(key, JSON.stringify(state))
-  }, [key, state])
-  return [state, setState]
-}
-
 function Greeting({initialName = ''}) {
-  const [name, setName] = useLocalStorageWithState('name', initialName)
+  // 🐨 initialize the state to the value from localStorage
+  // 💰 window.localStorage.getItem('name') ?? initialName
+  const [name, setName] = React.useState(initialName)
+
+  // 🐨 Here's where you'll use `React.useEffect`.
+  // The callback should set the `name` in localStorage.
+  // 💰 window.localStorage.setItem('name', name)
+
   function handleChange(event) {
     setName(event.target.value)
   }
@@ -37,7 +27,7 @@ function Greeting({initialName = ''}) {
 }
 
 function App() {
-  return <Greeting key={'name'} initialName="Mekuanint" />
+  return <Greeting />
 }
 
 export default App
