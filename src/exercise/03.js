@@ -35,13 +35,12 @@ function App() {
     <form>
       <Name name={name} onNameChange={event => setName(event.target.value)} />
       {/* 🐨 pass the animal and onAnimalChange prop here (similar to the Name component above) */}
-      <FavoriteAnimal />
-      {/* 🐨 pass the animal prop here */}
-      <Display
-        name={name}
+      <FavoriteAnimal
         animal={animal}
         onNameChange={event => setAnimal(event.target.value)}
       />
+      {/* 🐨 pass the animal prop here */}
+      <Display name={name} animal={animal} />
     </form>
   )
 }
