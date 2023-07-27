@@ -11,7 +11,7 @@ function countReducer(state, action) {
       return {count: state.count + action.step}
     }
     default: {
-      break
+      throw new Error(`Invalid action type ${action.type}`)
     }
   }
 }
