@@ -4,11 +4,13 @@ import userEvent from '@testing-library/user-event'
 import App from '../final/03'
 // import App from '../exercise/03'
 
-test('App works', async () => {
+test('clicking the button increments the count', async () => {
   render(<App />)
-  await userEvent.type(screen.getByRole('textbox', {name: /name/i}), 'mulan')
-  await userEvent.type(screen.getByRole('textbox', {name: /animal/i}), 'dragon')
-  expect(
-    screen.getByText('Hey mulan, your favorite animal is: dragon!'),
-  ).toBeInTheDocument()
+  const button = screen.getByText(/increment count/i)
+  const display = screen.getByText(/the current count/i)
+  expect(display).toHaveTextContent(/0/)
+  await userEvent.click(button)
+  expect(display).toHaveTextContent(/1/)
+  await userEvent.click(button)
+  expect(display).toHaveTextContent(/2/)
 })

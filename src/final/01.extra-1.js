@@ -1,27 +1,19 @@
-// useState: greeting
-// 💯 accept an initialName
+// useReducer: simple Counter
+// 💯 accept the step as the action
 // http://localhost:3000/isolated/final/01.extra-1.js
 
 import * as React from 'react'
 
-function Greeting({initialName = ''}) {
-  const [name, setName] = React.useState(initialName)
-  function handleChange(event) {
-    setName(event.target.value)
-  }
-  return (
-    <div>
-      <form>
-        <label htmlFor="name">Name: </label>
-        <input value={name} onChange={handleChange} id="name" />
-      </form>
-      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
-    </div>
-  )
+const countReducer = (count, change) => count + change
+
+function Counter({initialCount = 0, step = 1}) {
+  const [count, changeCount] = React.useReducer(countReducer, initialCount)
+  const increment = () => changeCount(step)
+  return <button onClick={increment}>{count}</button>
 }
 
-function App() {
-  return <Greeting initialName="Kody" />
+function Usage() {
+  return <Counter />
 }
 
-export default App
+export default Usage

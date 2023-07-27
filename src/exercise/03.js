@@ -1,51 +1,39 @@
-// Lifting state
+// useContext: simple Counter
 // http://localhost:3000/isolated/exercise/03.js
 
 import * as React from 'react'
 
-function Name() {
-  const [name, setName] = React.useState('')
-  return (
-    <div>
-      <label htmlFor="name">Name: </label>
-      <input
-        id="name"
-        value={name}
-        onChange={event => setName(event.target.value)}
-      />
-    </div>
-  )
+// 🐨 create your CountContext here with React.createContext
+
+// 🐨 create a CountProvider component here that does this:
+//   🐨 get the count state and setCount updater with React.useState
+//   🐨 create a `value` array with count and setCount
+//   🐨 return your context provider with the value assigned to that array and forward all the other props
+//   💰 more specifically, we need the children prop forwarded to the context provider
+
+function CountDisplay() {
+  // 🐨 get the count from useContext with the CountContext
+  const count = 0
+  return <div>{`The current count is ${count}`}</div>
 }
 
-// 🐨 accept `animal` and `onAnimalChange` props to this component
-function FavoriteAnimal({animal, onNameChange}) {
-  return (
-    <div>
-      <label htmlFor="animal">Favorite Animal: </label>
-      <input id="animal" value={animal} onChange={onNameChange} />
-    </div>
-  )
-}
-
-// 🐨 uncomment this
-function Display({name, animal}) {
-  return <div>{`Your favorite animal is: ${animal}!`}</div>
+function Counter() {
+  // 🐨 get the setCount from useContext with the CountContext
+  const setCount = () => {}
+  const increment = () => setCount(c => c + 1)
+  return <button onClick={increment}>Increment count</button>
 }
 
 function App() {
-  // 🐨 add a useState for the animal
-  const [animal, setAnimal] = React.useState('')
   return (
-    <form>
-      <Name />
-      {/* 🐨 pass the animal and onAnimalChange prop here (similar to the Name component above) */}
-      <FavoriteAnimal
-        animal={animal}
-        onNameChange={event => setAnimal(event.target.value)}
-      />
-      {/* 🐨 pass the animal prop here */}
-      <Display animal={animal} />
-    </form>
+    <div>
+      {/*
+        🐨 wrap these two components in the CountProvider so they can access
+        the CountContext value
+      */}
+      <CountDisplay />
+      <Counter />
+    </div>
   )
 }
 

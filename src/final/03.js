@@ -1,42 +1,37 @@
-// Lifting state
+// useContext: simple Counter
 // http://localhost:3000/isolated/final/03.js
 
 import * as React from 'react'
 
-function Name({name, onNameChange}) {
-  return (
-    <div>
-      <label htmlFor="name">Name: </label>
-      <input id="name" value={name} onChange={onNameChange} />
-    </div>
-  )
+const CountContext = React.createContext()
+
+function CountProvider(props) {
+  const [count, setCount] = React.useState(0)
+  const value = [count, setCount]
+  // could also do it like this:
+  // const value = React.useState(0)
+  return <CountContext.Provider value={value} {...props} />
 }
 
-function FavoriteAnimal({animal, onAnimalChange}) {
-  return (
-    <div>
-      <label htmlFor="animal">Favorite Animal: </label>
-      <input id="animal" value={animal} onChange={onAnimalChange} />
-    </div>
-  )
+function CountDisplay() {
+  const [count] = React.useContext(CountContext)
+  return <div>{`The current count is ${count}`}</div>
 }
 
-function Display({name, animal}) {
-  return <div>{`Hey ${name}, your favorite animal is: ${animal}!`}</div>
+function Counter() {
+  const [, setCount] = React.useContext(CountContext)
+  const increment = () => setCount(c => c + 1)
+  return <button onClick={increment}>Increment count</button>
 }
 
 function App() {
-  const [animal, setAnimal] = React.useState('')
-  const [name, setName] = React.useState('')
   return (
-    <form>
-      <Name name={name} onNameChange={event => setName(event.target.value)} />
-      <FavoriteAnimal
-        animal={animal}
-        onAnimalChange={event => setAnimal(event.target.value)}
-      />
-      <Display name={name} animal={animal} />
-    </form>
+    <div>
+      <CountProvider>
+        <CountDisplay />
+        <Counter />
+      </CountProvider>
+    </div>
   )
 }
 

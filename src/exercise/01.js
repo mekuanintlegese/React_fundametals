@@ -1,28 +1,23 @@
-// useState: greeting
+// useReducer: simple Counter
 // http://localhost:3000/isolated/exercise/01.js
 
 import * as React from 'react'
 
-function Greeting({initialName = ''}) {
-  const [name, setName] = React.useState(initialName)
+function Counter({initialCount = 0, step = 1}) {
+  // 🐨 replace React.useState with React.useReducer.
+  // 💰 React.useReducer(countReducer, initialCount)
+  const [count, setCount] = React.useState(initialCount)
 
-  function handleChange(event) {
-    setName(event.target.value)
-  }
-
-  return (
-    <div>
-      <form>
-        <label htmlFor="name">Name: </label>
-        <input value={name} onChange={handleChange} id="name" />
-      </form>
-      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
-    </div>
-  )
+  // 💰 you can write the countReducer function so you don't have to make any
+  // changes to the next two lines of code! Remember:
+  // The 1st argument is called "state" - the current value of count
+  // The 2nd argument is called "newState" - the value passed to setCount
+  const increment = () => setCount(count + step)
+  return <button onClick={increment}>{count}</button>
 }
 
 function App() {
-  return <Greeting initialName="Meku" />
+  return <Counter />
 }
 
 export default App

@@ -1,89 +1,46 @@
-// useEffect: HTTP requests
+// useDebugValue: useMedia
 // http://localhost:3000/isolated/exercise/06.js
 
 import * as React from 'react'
-import {ErrorBoundary} from 'react-error-boundary'
-import {
-  PokemonForm,
-  PokemonInfoFallback,
-  PokemonDataView,
-  fetchPokemon,
-} from '../pokemon'
 
-function PokemonInfo({pokemonName}) {
-  const [state, setState] = React.useState({
-    status: pokemonName ? 'pending' : 'idle',
-    pokemon: null,
-    error: null,
-  })
-
-  const {status, pokemon, error} = state
+function useMedia(query, initialState = false) {
+  const [state, setState] = React.useState(initialState)
+  // 🐨 call React.useDebugValue here.
+  // 💰 here's the formatted label I use: `\`${query}\` => ${state}`
 
   React.useEffect(() => {
-    if (!pokemonName) {
-      return
+    let mounted = true
+    const mql = window.matchMedia(query)
+    function onChange() {
+      if (!mounted) {
+        return
+      }
+      setState(Boolean(mql.matches))
     }
-    setState({status: 'pending'})
-    fetchPokemon(pokemonName).then(
-      pokemon => {
-        // setPokemon(pokemon)
-        // setStatus('resolved')
-        setState({pokemon, status: 'resolved'})
-      },
-      error => {
-        // setError(error)
-        // setStatus('rejected')
-        setState({error: error, status: 'rejected'})
-      },
-    )
-  }, [error, pokemonName])
 
-  if (status === 'idle') {
-    return 'Submit a pokemon'
-  } else if (status === 'pending') {
-    return <PokemonInfoFallback name={pokemonName} />
-  } else if (status === 'rejected') {
-    throw error
-  } else if (status === 'resolved') {
-    return <PokemonDataView pokemon={pokemon} />
-  }
+    mql.addListener(onChange)
+    setState(mql.matches)
+
+    return () => {
+      mounted = false
+      mql.removeListener(onChange)
+    }
+  }, [query])
+
+  return state
 }
 
-function ErrorFallback({error, resetErrorBoundary}) {
-  return (
-    <div role="alert">
-      There was an error:{' '}
-      <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
-      <button onClick={resetErrorBoundary}>Try Again</button>
-    </div>
-  )
+function Box() {
+  const isBig = useMedia('(min-width: 1000px)')
+  const isMedium = useMedia('(max-width: 999px) and (min-width: 700px)')
+  const isSmall = useMedia('(max-width: 699px)')
+  const color = isBig ? 'green' : isMedium ? 'yellow' : isSmall ? 'red' : null
+
+  return <div style={{width: 200, height: 200, backgroundColor: color}} />
 }
 
 function App() {
-  const [pokemonName, setPokemonName] = React.useState('')
-
-  function handleSubmit(newPokemonName) {
-    setPokemonName(newPokemonName)
-  }
-  function handleReset() {
-    setPokemonName('')
-  }
-
-  return (
-    <div className="pokemon-info-app">
-      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
-      <hr />
-      <div className="pokemon-info">
-        <ErrorBoundary
-          FallbackComponent={ErrorFallback}
-          onReset={handleReset}
-          resetKeys={pokemonName}
-        >
-          <PokemonInfo pokemonName={pokemonName} />
-        </ErrorBoundary>
-      </div>
-    </div>
-  )
+  return <Box />
 }
 
 export default App

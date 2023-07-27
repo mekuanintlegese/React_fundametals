@@ -1,63 +1,48 @@
-// useEffect: HTTP requests
-// 💯 handle errors
+// useDebugValue: useMedia
+// 💯 use the format function
 // http://localhost:3000/isolated/final/06.extra-1.js
 
 import * as React from 'react'
-import {
-  fetchPokemon,
-  PokemonInfoFallback,
-  PokemonForm,
-  PokemonDataView,
-} from '../pokemon'
 
-function PokemonInfo({pokemonName}) {
-  const [pokemon, setPokemon] = React.useState(null)
-  const [error, setError] = React.useState(null)
+const formatDebugValue = ({query, state}) => `\`${query}\` => ${state}`
+
+function useMedia(query, initialState = false) {
+  const [state, setState] = React.useState(initialState)
+  React.useDebugValue({query, state}, formatDebugValue)
 
   React.useEffect(() => {
-    if (!pokemonName) {
-      return
+    let mounted = true
+    const mql = window.matchMedia(query)
+    function onChange() {
+      if (!mounted) {
+        return
+      }
+      setState(Boolean(mql.matches))
     }
-    setPokemon(null)
-    setError(null)
-    fetchPokemon(pokemonName).then(
-      pokemon => setPokemon(pokemon),
-      error => setError(error),
-    )
-  }, [pokemonName])
 
-  if (error) {
-    return (
-      <div role="alert">
-        There was an error:{' '}
-        <pre style={{whiteSpace: 'normal'}}>{error.message}</pre>
-      </div>
-    )
-  } else if (!pokemonName) {
-    return 'Submit a pokemon'
-  } else if (!pokemon) {
-    return <PokemonInfoFallback name={pokemonName} />
-  } else {
-    return <PokemonDataView pokemon={pokemon} />
-  }
+    mql.addListener(onChange)
+    setState(mql.matches)
+
+    return () => {
+      mounted = false
+      mql.removeListener(onChange)
+    }
+  }, [query])
+
+  return state
+}
+
+function Box() {
+  const isBig = useMedia('(min-width: 1000px)')
+  const isMedium = useMedia('(max-width: 999px) and (min-width: 700px)')
+  const isSmall = useMedia('(max-width: 699px)')
+  const color = isBig ? 'green' : isMedium ? 'yellow' : isSmall ? 'red' : null
+
+  return <div style={{width: 200, height: 200, backgroundColor: color}} />
 }
 
 function App() {
-  const [pokemonName, setPokemonName] = React.useState('')
-
-  function handleSubmit(newPokemonName) {
-    setPokemonName(newPokemonName)
-  }
-
-  return (
-    <div className="pokemon-info-app">
-      <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
-      <hr />
-      <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
-      </div>
-    </div>
-  )
+  return <Box />
 }
 
 export default App

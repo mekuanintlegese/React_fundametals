@@ -1,47 +1,44 @@
-// Lifting state
-// 💯 colocating state
+// useContext: simple Counter
+// 💯 create a consumer hook
 // http://localhost:3000/isolated/final/03.extra-1.js
 
 import * as React from 'react'
 
-function Name() {
-  const [name, setName] = React.useState('')
-  return (
-    <div>
-      <label htmlFor="name">Name: </label>
-      <input
-        id="name"
-        value={name}
-        onChange={event => setName(event.target.value)}
-      />
-    </div>
-  )
+const CountContext = React.createContext()
+
+function CountProvider(props) {
+  const [count, setCount] = React.useState(0)
+  const value = [count, setCount]
+  return <CountContext.Provider value={value} {...props} />
 }
 
-function FavoriteAnimal({animal, onAnimalChange}) {
-  return (
-    <div>
-      <label htmlFor="animal">Favorite Animal: </label>
-      <input id="animal" value={animal} onChange={onAnimalChange} />
-    </div>
-  )
+function useCount() {
+  const context = React.useContext(CountContext)
+  if (!context) {
+    throw new Error('useCount must be used within a CountProvider')
+  }
+  return context
 }
 
-function Display({animal}) {
-  return <div>{`Your favorite animal is: ${animal}!`}</div>
+function CountDisplay() {
+  const [count] = useCount()
+  return <div>{`The current count is ${count}`}</div>
+}
+
+function Counter() {
+  const [, setCount] = useCount()
+  const increment = () => setCount(c => c + 1)
+  return <button onClick={increment}>Increment count</button>
 }
 
 function App() {
-  const [animal, setAnimal] = React.useState('')
   return (
-    <form>
-      <Name />
-      <FavoriteAnimal
-        animal={animal}
-        onAnimalChange={event => setAnimal(event.target.value)}
-      />
-      <Display animal={animal} />
-    </form>
+    <div>
+      <CountProvider>
+        <CountDisplay />
+        <Counter />
+      </CountProvider>
+    </div>
   )
 }
 

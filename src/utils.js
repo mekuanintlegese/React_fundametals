@@ -1,46 +1,82 @@
 import * as React from 'react'
 
-/**
- *
- * @param {String} key The key to set in localStorage for this value
- * @param {Object} defaultValue The value to use if it is not already in localStorage
- * @param {{serialize: Function, deserialize: Function}} options The serialize and deserialize functions to use (defaults to JSON.stringify and JSON.parse respectively)
- */
+function useSafeDispatch(dispatch) {
+  const mounted = React.useRef(false)
 
-function useLocalStorageState(
-  key,
-  defaultValue = '',
-  // the = {} fixes the error we would get from destructuring when no argument was passed
-  // Check https://jacobparis.com/blog/destructure-arguments for a detailed explanation
-  {serialize = JSON.stringify, deserialize = JSON.parse} = {},
-) {
-  const [state, setState] = React.useState(() => {
-    const valueInLocalStorage = window.localStorage.getItem(key)
-    if (valueInLocalStorage) {
-      // the try/catch is here in case the localStorage value was set before
-      // we had the serialization in place (like we do in previous extra credits)
-      try {
-        return deserialize(valueInLocalStorage)
-      } catch (error) {
-        window.localStorage.removeItem(key)
-      }
+  React.useLayoutEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
     }
-    return typeof defaultValue === 'function' ? defaultValue() : defaultValue
-  })
+  }, [])
 
-  const prevKeyRef = React.useRef(key)
-
-  // Check the example at src/examples/local-state-key-change.js to visualize a key change
-  React.useEffect(() => {
-    const prevKey = prevKeyRef.current
-    if (prevKey !== key) {
-      window.localStorage.removeItem(prevKey)
-    }
-    prevKeyRef.current = key
-    window.localStorage.setItem(key, serialize(state))
-  }, [key, state, serialize])
-
-  return [state, setState]
+  return React.useCallback(
+    (...args) => (mounted.current ? dispatch(...args) : void 0),
+    [dispatch],
+  )
 }
 
-export {useLocalStorageState}
+function asyncReducer(state, action) {
+  switch (action.type) {
+    case 'pending': {
+      return {status: 'pending', data: null, error: null}
+    }
+    case 'resolved': {
+      return {status: 'resolved', data: action.data, error: null}
+    }
+    case 'rejected': {
+      return {status: 'rejected', data: null, error: action.error}
+    }
+    default: {
+      throw new Error(`Unhandled action type: ${action.type}`)
+    }
+  }
+}
+
+function useAsync(initialState) {
+  const [state, unsafeDispatch] = React.useReducer(asyncReducer, {
+    status: 'idle',
+    data: null,
+    error: null,
+    ...initialState,
+  })
+
+  const dispatch = useSafeDispatch(unsafeDispatch)
+
+  const {data, error, status} = state
+
+  const run = React.useCallback(
+    promise => {
+      dispatch({type: 'pending'})
+      promise.then(
+        data => {
+          dispatch({type: 'resolved', data})
+        },
+        error => {
+          dispatch({type: 'rejected', error})
+        },
+      )
+    },
+    [dispatch],
+  )
+
+  const setData = React.useCallback(
+    data => dispatch({type: 'resolved', data}),
+    [dispatch],
+  )
+  const setError = React.useCallback(
+    error => dispatch({type: 'rejected', error}),
+    [dispatch],
+  )
+
+  return {
+    setData,
+    setError,
+    error,
+    status,
+    data,
+    run,
+  }
+}
+
+export {useAsync}
