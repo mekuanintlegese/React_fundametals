@@ -10,6 +10,10 @@ import {
   PokemonErrorBoundary,
 } from '../pokemon'
 
+const UseSafeDispatcher(dispatch){
+  
+}
+
 function asyncReducer(state, action) {
   switch (action.type) {
     case 'pending': {
@@ -27,19 +31,30 @@ function asyncReducer(state, action) {
   }
 }
 
-function useAsync(asyncCallback, initialState) {
-  const [state, dispatch] = React.useReducer(asyncReducer, {
+function useAsync(initialState) {
+  const [state, unsafeDispatch] = React.useReducer(asyncReducer, {
     status: 'idle',
     data: null,
     error: null,
     ...initialState,
   })
 
+  const mountRef = React.useRef(false)
+
   React.useEffect(() => {
-    const promise = asyncCallback()
-    if (!promise) {
-      return
+    mountRef.current = true
+    return () => {
+      mountRef.current = false
     }
+  }, [])
+
+  const dispatch = React.useCallback((...args) => {
+    if (mountRef.current) {
+      unsafeDispatch(...args)
+    }
+  }, [])
+
+  const run = React.useCallback(promise => {
     dispatch({type: 'pending'})
     promise.then(
       data => {
@@ -49,23 +64,28 @@ function useAsync(asyncCallback, initialState) {
         dispatch({type: 'rejected', error})
       },
     )
-  }, [asyncCallback])
-  return state
+  }, [])
+
+  return {...state, run}
 }
 
 function PokemonInfo({pokemonName}) {
-  const asyncCallback = React.useCallback(() => {
+  const {
+    data: pokemon,
+    status,
+    error,
+    run,
+  } = useAsync({status: pokemonName ? 'pending' : 'idle'})
+
+  React.useEffect(() => {
     if (!pokemonName) {
       return
     }
-    return fetchPokemon(pokemonName)
-  }, [pokemonName])
 
-  const state = useAsync(asyncCallback, {
-    status: pokemonName ? 'pending' : 'idle',
-  })
+    const pokemonPromise = fetchPokemon(pokemonName)
+    run(pokemonPromise)
+  }, [pokemonName, run])
 
-  const {data: pokemon, status, error} = state
   switch (status) {
     case 'idle':
       return <span>Submit a pokemon</span>
